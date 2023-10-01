@@ -1,12 +1,12 @@
 # Dataset Deduplication and Cleaning for Efficient Language Model Training
 
-# Environment Setup
+### Environment Setup
 The file [requirements.txt](./requirements.txt) contains the pre-requisites that are needed to enable a clean run of the scripts. Below is how to setup the environment:
 ```bash
 pip install -r requirements.txt
 ```
 
-# Dataset Building
+**Note if your dataset is more than 1b lines then use the first method otherwise use the second method**
 
 ## Slimpajama Method 
 We have two options to replicate SlimPajama in arabic or any language:

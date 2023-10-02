@@ -15,7 +15,7 @@ import shutil
 logger = logging.getLogger(__name__)
 
 
-def main(dataset_dir, dataset_config_name, data_cache_dir, save_dir,
+def main(dataset_dir, data_files, data_cache_dir, save_dir,
          do_tokenize=True,
          block_size=512,
          tokenizer_name=""):
@@ -29,7 +29,7 @@ def main(dataset_dir, dataset_config_name, data_cache_dir, save_dir,
     # do_tokenize = True
 
     print(f"Loading dataset from {dataset_dir}"
-          f" with config {dataset_config_name}"
+          f" with config {data_files}"
           f" and cache dir {data_cache_dir}"
           f" and preprocessing num workers {preprocessing_num_workers}"
           f" and streaming {streaming}"
@@ -37,7 +37,7 @@ def main(dataset_dir, dataset_config_name, data_cache_dir, save_dir,
           f" and block_size {block_size}"
           f" and tokenizer_name {tokenizer_name}")
 
-    raw_dataset = load_dataset(dataset_dir, dataset_config_name,
+    raw_dataset = load_dataset(dataset_dir, data_files=data_files,
                                cache_dir=data_cache_dir, split="train",
                                num_proc=preprocessing_num_workers,
                                keep_in_memory=False,
@@ -131,7 +131,7 @@ def main(dataset_dir, dataset_config_name, data_cache_dir, save_dir,
     # save_dir = "/lustre07/scratch/gagan30/arocr/meta-llama/fin_project/pretrain_data"
     print(f"Saving pretraining data to {save_dir}")
     os.makedirs(save_dir, exist_ok=True)
-    save_at = os.path.join(save_dir, f'{dataset_config_name}')
+    save_at = os.path.join(save_dir)
     if os.path.exists(save_at):
         shutil.rmtree(save_at, ignore_errors=True)
     save_workers = preprocessing_num_workers if preprocessing_num_workers < len(

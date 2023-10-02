@@ -46,13 +46,14 @@ class TextData(datasets.GeneratorBasedBuilder):
     def __init__(self, data_dir, data_files, **kwargs):
         super(TextData, self).__init__(**kwargs)
         self.data_dir = data_dir
-        self.data_files = data_files if data_files else glob(os.path.join(data_dir, "*.txt"))
-        
+        self.data_files = data_files if data_files else glob(
+            os.path.join(data_dir, "*.txt"))
+
     def _info(self):
         features = datasets.Features({
             "text": datasets.Value("string"),
         })
-    
+
         return datasets.DatasetInfo(features=features)
 
     def _split_generators(self, dl_manager):
@@ -63,13 +64,15 @@ class TextData(datasets.GeneratorBasedBuilder):
                                     gen_kwargs={
                                         "filepaths": downloaded_files})
         ]
-        
+
     def _generate_examples(self, filepaths):
-            yield from self.generate_examples_pretrain(filepaths)
-        
+        yield from self.generate_examples_pretrain(filepaths)
 
     def generate_examples_pretrain(self, filepaths):
         key = 0
+        if type(filepaths) == str:
+            filepaths = [filepaths]
+
         for filepath in filepaths:
             with open(filepath, encoding="utf-8") as f:
                 for chunk in read_large_file(f):

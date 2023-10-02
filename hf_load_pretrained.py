@@ -10,10 +10,15 @@ from squeakily.filter import minhash_dedup
 from squeakily.core import Pipeline
 import transformers
 from fire import Fire
+import shutil
+
 logger = logging.getLogger(__name__)
 
 
-def main(dataset_dir, data_dir, data_cache_dir, save_dir, do_tokenize=True, block_size=512):
+def main(dataset_dir, dataset_config_name, data_cache_dir, save_dir,
+         do_tokenize=True,
+         block_size=512,
+         tokenizer_name="/lustre07/scratch/gagan30/arocr/meta-llama/models/Llama-2-7b-chat-hf"):
     # block_size = 512
     # dataset_dir = "/lustre07/scratch/gagan30/arocr/meta-llama/fin_project/fin_data"
     # dataset_config_name = "pretraining"
@@ -21,15 +26,15 @@ def main(dataset_dir, data_dir, data_cache_dir, save_dir, do_tokenize=True, bloc
     preprocessing_num_workers = os.cpu_count()
     streaming = False
     # validation_split_percentage = 0.00001
-    do_tokenize = True
+    # do_tokenize = True
 
-    raw_dataset = load_dataset(dataset_dir, data_dir=data_dir,
-                               cache_dir=data_cache_dir, split="train",
+    raw_dataset = load_dataset(dataset_dir, dataset_config_name,
+                               cache_dir=data_cache_dir, split="train[:1000]",
                                num_proc=preprocessing_num_workers,
                                keep_in_memory=False,
                                streaming=streaming)
 
-    print(raw_dataset)
+    print("Original Dataset:", raw_dataset)
 
     datasources = [
         {
@@ -46,14 +51,13 @@ def main(dataset_dir, data_dir, data_cache_dir, save_dir, do_tokenize=True, bloc
 
     raw_dataset = pipeline.datasources[0]["dataset"]
 
-    print(raw_dataset)
+    print("Deduped Dataset:", raw_dataset)
 
-    if do_tokenize:
+    if do_tokenize and tokenizer_name != "":
         tok_logger = transformers.utils.logging.get_logger(
             "transformers.tokenization_utils_base")
 
-        tokenizer = AutoTokenizer.from_pretrained(
-            "/lustre07/scratch/gagan30/arocr/meta-llama/models/Llama-2-7b-hf")
+        tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
 
         def tokenize_function(examples):
             with CaptureLogger(tok_logger) as cl:
@@ -97,7 +101,7 @@ def main(dataset_dir, data_dir, data_cache_dir, save_dir, do_tokenize=True, bloc
             desc="Running tokenizer on dataset",
         )
 
-        print(tokenized_dataset)
+        print("Tokenized Dataset:", tokenized_dataset)
         grouped_datasets = tokenized_dataset.map(
             group_texts,
             batched=True,
@@ -107,22 +111,25 @@ def main(dataset_dir, data_dir, data_cache_dir, save_dir, do_tokenize=True, bloc
             # cache_file_names = {k: os.path.join(data_cache_dir, f'grouped_fin_pretrain.arrow') for k in tokenized_dataset},
             desc=f"Grouping texts in chunks of {block_size}",
         )
+        print("Grouped Dataset:", grouped_datasets)
 
         lm_datasets = grouped_datasets
     else:
         lm_datasets = raw_dataset
 
-    print(lm_datasets)
+    print("Final Dataset:", lm_datasets)
 
     # save_dir = "/lustre07/scratch/gagan30/arocr/meta-llama/fin_project/pretrain_data"
     print(f"Saving pretraining data to {save_dir}")
     os.makedirs(save_dir, exist_ok=True)
-    lm_datasets.save_to_disk(os.path.join(
-        save_dir), num_proc=preprocessing_num_workers)
+    save_at = os.path.join(save_dir, f'{dataset_config_name}')
+    if os.path.exists(save_at):
+        shutil.rmtree(save_at, ignore_errors=True)
+    save_workers = preprocessing_num_workers if preprocessing_num_workers < len(
+        lm_datasets) else len(lm_datasets)
+    lm_datasets.save_to_disk(save_at, num_proc=save_workers)
     # lm_datasets["train"].save_to_disk(os.path.join(data_cache_dir, f'fin_pretrain_train'))
 
 
 if __name__ == "__main__":
     Fire(main)
-
-# python hf_load_pretrained.py --dataset_dir /lustre07/scratch/gagan30/arocr/meta-llama/fin_project/fin_data --dataset_config_name pretraining --data_cache_dir /lustre07/scratch/gagan30/arocr/cache --save_dir /lustre07/scratch/gagan30/arocr/meta-llama/fin_project/pretrain_data --do_tokenize True --block_size 512

@@ -44,7 +44,8 @@ python hf_load_pretrained.py --dataset_dir text_dataset \
                             --data_cache_dir <cache_dir> \
                             --save_dir pretrain_data \
                             --do_tokenize True \
-                            --block_size 512 
+                            --block_size 512 \
+                            --tokenizer_name meta-llama/Llama-2-7b-chat-hf \
 ```
 
 This script will do the following:

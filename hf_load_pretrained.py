@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 def main(dataset_dir, dataset_config_name, data_cache_dir, save_dir,
          do_tokenize=True,
          block_size=512,
-         tokenizer_name="/lustre07/scratch/gagan30/arocr/meta-llama/models/Llama-2-7b-chat-hf"):
+         tokenizer_name=""):
     # block_size = 512
     # dataset_dir = "/lustre07/scratch/gagan30/arocr/meta-llama/fin_project/fin_data"
     # dataset_config_name = "pretraining"
@@ -28,8 +28,17 @@ def main(dataset_dir, dataset_config_name, data_cache_dir, save_dir,
     # validation_split_percentage = 0.00001
     # do_tokenize = True
 
+    print(f"Loading dataset from {dataset_dir}"
+          f" with config {dataset_config_name}"
+          f" and cache dir {data_cache_dir}"
+          f" and preprocessing num workers {preprocessing_num_workers}"
+          f" and streaming {streaming}"
+          f" and do_tokenize {do_tokenize}"
+          f" and block_size {block_size}"
+          f" and tokenizer_name {tokenizer_name}")
+
     raw_dataset = load_dataset(dataset_dir, dataset_config_name,
-                               cache_dir=data_cache_dir, split="train[:1000]",
+                               cache_dir=data_cache_dir, split="train",
                                num_proc=preprocessing_num_workers,
                                keep_in_memory=False,
                                streaming=streaming)
@@ -53,7 +62,7 @@ def main(dataset_dir, dataset_config_name, data_cache_dir, save_dir,
 
     print("Deduped Dataset:", raw_dataset)
 
-    if do_tokenize and tokenizer_name != "":
+    if do_tokenize:
         tok_logger = transformers.utils.logging.get_logger(
             "transformers.tokenization_utils_base")
 

@@ -43,11 +43,11 @@ class TextDataConfig(datasets.BuilderConfig):
 class TextData(datasets.GeneratorBasedBuilder):
     """Text dataset."""
 
-    def __init__(self, data_dir, **kwargs):
+    def __init__(self, data_dir, data_files, **kwargs):
         super(TextData, self).__init__(**kwargs)
         self.data_dir = data_dir
-        self.data_files = glob(os.path.join(data_dir, "*.txt"))
-
+        self.data_files = data_files if data_files else glob(os.path.join(data_dir, "*.txt"))
+        
     def _info(self):
         features = datasets.Features({
             "text": datasets.Value("string"),

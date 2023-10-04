@@ -77,7 +77,7 @@ class TextData(datasets.GeneratorBasedBuilder):
             with open(filepath, encoding="utf-8") as f:
                 for chunk in read_large_file(f):
                     for text in chunk.strip().split("\n"):
-                        text = clean_text(text)
+                        # text = clean_text(text)
                         yield key, {
                             "text": text,
                         }

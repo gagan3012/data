@@ -18,6 +18,7 @@ python main.py ArabicText/
 It took ~2.5 days to process the 1.21T token RedPajama dataset on a machine with 64 CPU cores, but note that using [main.py](./main.py) will take longer as it doesn't parallelize some steps across the data chunks. The highest RAM consumption that we observed was ~1.4TB.
 
 Here give it the folder that contains the data, and it will do the following:
+
 0. Convert Text to Jsonl
 1. NFC normalization
 2. Filter short documents
@@ -49,6 +50,7 @@ python hf_load_pretrained.py --dataset_dir text_dataset \
 ```
 
 This script will do the following:
+
 0. Data Loading
 1. Cleaning up whitespaces
 2. Filter short documents
